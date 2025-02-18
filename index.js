@@ -4,7 +4,14 @@ const morgan = require('morgan')
 const app = express()
 
 app.use(express.json())
-app.use(morgan('tiny'));
+
+// app.use(morgan('tiny'))    // middleware
+morgan.token('bodyEmTexto', (req) => JSON.stringify(req.body))
+app.use(
+  morgan(':method :url :status :res[content-length] - :response-time ms :bodyEmTexto', {
+    skip: (req) => req.method !== 'POST',
+  })
+)
 
 let persons = [
   {
@@ -38,10 +45,6 @@ let persons = [
     id: "5"
   },
 ]
-
-app.get('/', (req, res) => {
-  res.send('Hello, world!');
-});
 
 app.get('/info', (request, response) => {
   const date = new Date().toString()
@@ -114,7 +117,7 @@ const generateId = () => {
 
 const nameAlreadyExists = (name) => {
   const person = persons.find(person => person.name === name)
-  return person ? true : false;
+  return person ? true : false
 }
 
 const PORT = 3001
