@@ -46,13 +46,27 @@ app.get('/api/persons', (request, response) => {
 })
 
 app.get('/api/persons/:id', (request, response) => {
-  const person = persons.find(person => person.id === request.params.id)
-  console.log(person)
+  const id = request.params.id
+  const person = persons.find(person => person.id === id)
   
   if (person) {
     response.json(person)
   } else {
-    response.statusMessage = `No person has been found with id ${request.params.id}`
+    response.statusMessage = `No person has been found with id ${id}`
+    response.status(404).end()
+  }
+})
+
+app.delete('/api/persons/:id', (request, response) => {
+  const id = request.params.id
+  const person = persons.find(person => person.id === id)
+  if (person) {
+    persons = persons.filter(person => person.id !== id)
+    console.log(`Person ${id} deleted`)
+    response.statusMessage = `The person with id ${id} was deleted`
+    response.status(204).end()
+  } else {
+    response.statusMessage = `No person has been found with id ${id}`
     response.status(404).end()
   }
 })
