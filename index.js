@@ -39,7 +39,7 @@ let persons = [
 app.get('/info', (request, response) => {
   const date = new Date().toString()
   response.send(`<p>Phonebook has info for ${persons.length} people</p><p>${date})</p>`)
-});
+})
 
 app.get('/api/persons', (request, response) => {
   response.json(persons)
@@ -71,22 +71,18 @@ app.delete('/api/persons/:id', (request, response) => {
   }
 })
 
-const generateId = () => {
-  let newId = 0;
-  let person = ''
-  while (person !== undefined) {
-    newId = Math.floor(Math.random() * (10000 - 100 + 1)) + 100;
-    person = persons.find(person => person.id === newId.toString())
-  }
-  return newId.toString()
-}
-
 app.post('/api/persons', (request, response) => {
   const body = request.body
   if (!body) {
     return response.status(400).json({ 
-      error: 'No body send' 
+      error: 'No body send'
     })
+  } else if (!body.name || !body.number) {
+    return response.status(400).json({ 
+      error: 'In order to register, the name and number are required.' 
+    })
+  } else if (nameAlreadyExists(body.name)) {
+    return response.status(400).json({ error: 'name must be unique' })
   }
 
   const person = {
@@ -98,6 +94,21 @@ app.post('/api/persons', (request, response) => {
 
   response.json(person)
 })
+
+const generateId = () => {
+  let newId = 0
+  let person = ''
+  while (person !== undefined) {
+    newId = Math.floor(Math.random() * (10000 - 100 + 1)) + 100
+    person = persons.find(person => person.id === newId.toString())
+  }
+  return newId.toString()
+}
+
+const nameAlreadyExists = (name) => {
+  const person = persons.find(person => person.name === name)
+  return person ? true : false;
+}
 
 const PORT = 3001
 app.listen(PORT)
