@@ -1,5 +1,6 @@
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
 
 const app = express()
 
@@ -12,6 +13,8 @@ app.use(
     skip: (req) => req.method !== 'POST',
   })
 )
+
+app.use(cors())
 
 let persons = [
   {
