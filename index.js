@@ -1,7 +1,10 @@
 const express = require('express')
+const morgan = require('morgan')
+
 const app = express()
 
 app.use(express.json())
+app.use(morgan('tiny'));
 
 let persons = [
   {
@@ -35,6 +38,10 @@ let persons = [
     id: "5"
   },
 ]
+
+app.get('/', (req, res) => {
+  res.send('Hello, world!');
+});
 
 app.get('/info', (request, response) => {
   const date = new Date().toString()
