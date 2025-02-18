@@ -71,6 +71,34 @@ app.delete('/api/persons/:id', (request, response) => {
   }
 })
 
+const generateId = () => {
+  let newId = 0;
+  let person = ''
+  while (person !== undefined) {
+    newId = Math.floor(Math.random() * (10000 - 100 + 1)) + 100;
+    person = persons.find(person => person.id === newId.toString())
+  }
+  return newId.toString()
+}
+
+app.post('/api/persons', (request, response) => {
+  const body = request.body
+  if (!body) {
+    return response.status(400).json({ 
+      error: 'No body send' 
+    })
+  }
+
+  const person = {
+    name: body.name,
+    number: body.number,
+    id: generateId(),
+  }
+  persons = persons.concat(person)
+
+  response.json(person)
+})
+
 const PORT = 3001
 app.listen(PORT)
 console.log(`The server is running on port ${PORT}`)
