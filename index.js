@@ -13,6 +13,7 @@ app.use(
     skip: (req) => req.method !== 'POST',
   })
 )
+app.use(express.static('dist'))
 
 app.use(cors())
 
@@ -125,5 +126,5 @@ const nameAlreadyExists = (name) => {
 
 const PORT = 3000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`O servidor esta a escoitar no porto ${PORT}`);
+  console.log(`O servidor está a escoitar no porto ${PORT}`);
 });
