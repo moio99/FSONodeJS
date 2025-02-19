@@ -1,1 +1,3 @@
-# Project for the exercises
+# Project for exercises
+
+# https://fsonodejs.fly.dev/info

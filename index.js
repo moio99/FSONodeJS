@@ -125,5 +125,5 @@ const nameAlreadyExists = (name) => {
 
 const PORT = 3000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`O servidor esta a escoita no porto ${PORT}`);
+  console.log(`O servidor esta a escoitar no porto ${PORT}`);
 });
