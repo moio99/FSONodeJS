@@ -123,7 +123,7 @@ const nameAlreadyExists = (name) => {
   return person ? true : false
 }
 
-const PORT = 3000 || 8080;
+const PORT = 3000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`The server is listening on port ${PORT}`);
+  console.log(`O servidor esta a escoita no porto ${PORT}`);
 });
