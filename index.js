@@ -69,7 +69,6 @@ app.get('/api/persons', (request, response) => {
   Person.find({}).then(people => {
     response.json(people)
   })
-  // response.json(persons) old exercise 
 })
 
 app.get('/api/persons/:id', async (request, response) => {
@@ -84,15 +83,6 @@ app.get('/api/persons/:id', async (request, response) => {
   } catch (error) {
     response.status(400).json({ error: 'Invalid ID format' })
   }
-  
-  /* old exercise
-  const person = persons.find(person => person.id === id)
-  if (person) {
-    response.json(person)
-  } else {
-    response.statusMessage = `No person has been found with id ${id}`
-    response.status(404).end()
-  } */
 })
 
 app.delete('/api/persons/:id', (request, response) => {
