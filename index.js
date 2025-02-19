@@ -1,9 +1,10 @@
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const mongoose = require('mongoose')
+require('dotenv').config()
 
 const app = express()
-
 app.use(express.json())
 
 // app.use(morgan('tiny'))    // middleware
@@ -16,6 +17,9 @@ app.use(
 app.use(express.static('dist'))
 
 app.use(cors())
+
+mongoose.set('strictQuery',false)
+mongoose.connect(process.env.MONGODB_URI)
 
 let persons = [
   {
@@ -50,25 +54,45 @@ let persons = [
   },
 ]
 
+const personSchema = new mongoose.Schema({
+  name: String,
+  number: String,
+})
+const Person = mongoose.model('Person', personSchema)
+
 app.get('/info', (request, response) => {
   const date = new Date().toString()
   response.send(`<p>Phonebook has info for ${persons.length} people</p><p>${date})</p>`)
 })
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+  Person.find({}).then(people => {
+    response.json(people)
+  })
+  // response.json(persons) old exercise 
 })
 
-app.get('/api/persons/:id', (request, response) => {
-  const id = request.params.id
-  const person = persons.find(person => person.id === id)
+app.get('/api/persons/:id', async (request, response) => {
+  try {
+    const id = request.params.id
+
+    const person = await Person.findById(id);
+    if (!person) {
+      return response.status(404).json({ error: `No person has been found with id ${id}` })
+    }
+    response.json(person)
+  } catch (error) {
+    response.status(400).json({ error: 'Invalid ID format' })
+  }
   
+  /* old exercise
+  const person = persons.find(person => person.id === id)
   if (person) {
     response.json(person)
   } else {
     response.statusMessage = `No person has been found with id ${id}`
     response.status(404).end()
-  }
+  } */
 })
 
 app.delete('/api/persons/:id', (request, response) => {
