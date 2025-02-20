@@ -72,31 +72,34 @@ app.get('/api/persons', (request, response) => {
 })
 
 app.get('/api/persons/:id', async (request, response) => {
-  try {
-    const id = request.params.id
-
-    const person = await Person.findById(id);
-    if (!person) {
-      return response.status(404).json({ error: `No person has been found with id ${id}` })
+  const id = request.params.id
+  Person.findById(id).then(person => {
+    if (person) {
+      response.json(person)
+    } else {
+      response.status(404).end()
     }
-    response.json(person)
-  } catch (error) {
-    response.status(400).json({ error: 'Invalid ID format' })
-  }
+  })
+  .catch(error => {
+    console.log(error)
+    response.status(400).send({ error: 'malformatted id' })
+  })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
   const id = request.params.id
-  const person = persons.find(person => person.id === id)
-  if (person) {
-    persons = persons.filter(person => person.id !== id)
-    console.log(`Person ${id} deleted`)
-    response.statusMessage = `The person with id ${id} was deleted`
-    response.status(204).end()
-  } else {
-    response.statusMessage = `No person has been found with id ${id}`
-    response.status(404).end()
-  }
+  Person.findByIdAndDelete(id)
+    .then(person => {
+      if (person) {
+        console.log(`Person ${id} deleted`)
+        response.statusMessage = `The person with id ${id} was deleted`
+        response.status(204).end()
+      } else {
+        response.statusMessage = `No person has been found with id ${id}`
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
 })
 
 app.post('/api/persons', (request, response) => {
