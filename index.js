@@ -40,14 +40,19 @@ const personSchema = new mongoose.Schema({
 const Person = mongoose.model('Person', personSchema)
 
 app.get('/info', (request, response) => {
-  const date = new Date().toString()
-  response.send(`<p>Phonebook has info for ${persons.length} people</p><p>${date})</p>`)
+  Person.find({})
+    .then(people => {
+      const date = new Date().toString()
+      response.send(`<p>Phonebook has info on ${people.length} people</p><p>${date})</p>`)
+    })
+    .catch(error => next(error))
 })
 
 app.get('/api/persons', (request, response) => {
   Person.find({})
     .then(people => {
-      response.json(people)
+      const peopleFront = people.map(p  => ({name: p.name, number: p.number, id: p._id,}))
+      response.json(peopleFront)
     })
     .catch(error => next(error))
 })
@@ -57,7 +62,12 @@ app.get('/api/persons/:id', async (request, response, next) => {
   Person.findById(id)
   .then(person => {
     if (person) {
-      response.json(person)
+      const personFront = {
+        name: person.name,
+        number: person.number,
+        id: person._id,
+      }
+      response.json(personFront)
     } else {
       response.status(404).end()
     }
@@ -103,13 +113,18 @@ app.post('/api/persons', (request, response) => {
   person.save()
     .then(result => {
       console.log(`Added ${result.name} number ${result.number} to phonebook`)
+      
+      const personResponse = {
+        name: body.name,
+        number: body.number,
+        id: result._id.toString()
+      }
+      response.json(personResponse)
     })
     .catch(error => {
       console.log(error)
       next(error)
     })
-
-  response.json(person)
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
