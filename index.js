@@ -43,7 +43,7 @@ const personSchema = new mongoose.Schema({
     type: String,
     validate: {
       validator: function(v) {
-        return /^.{3,}$/.test(v);
+        return /^.{3,}$/.test(v)
       },
       message: props => `${props.value} must be greater than 3`
     },
@@ -54,7 +54,7 @@ const personSchema = new mongoose.Schema({
     type: String,
     validate: {
       validator: function(v) {
-        return /^\d{2,3}-\d{7,8}$/.test(v);
+        return /^\d{2,3}-\d{7,8}$/.test(v)
       },
       message: props => `${props.value} is not a valid phone number`
     },
@@ -122,12 +122,12 @@ app.delete('/api/persons/:id', (request, response, next) => {
 app.post('/api/persons', (request, response, next) => {
   const body = request.body
   if (!body) {
-    return response.status(400).json({ 
+    return response.status(400).json({
       error: 'No body send'
     })
   } else if (!body.name || !body.number) {
-    return response.status(400).json({ 
-      error: 'In order to register, the name and number are required.' 
+    return response.status(400).json({
+      error: 'In order to register, the name and number are required.'
     })
   }
 
@@ -138,7 +138,7 @@ app.post('/api/persons', (request, response, next) => {
   person.save()
     .then(result => {
       console.log(`Added ${result.name} number ${result.number} to phonebook`)
-      
+
       const personResponse = {
         name: body.name,
         number: body.number,
@@ -154,8 +154,8 @@ app.put('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
 
   if (!body.number) {
-    return response.status(400).json({ 
-      error: 'In order to update, the number is required.' 
+    return response.status(400).json({
+      error: 'In order to update, the number is required.'
     })
   }
 
@@ -175,7 +175,7 @@ app.put('/api/persons/:id', (request, response, next) => {
 // este debe ser el último middleware cargado, ¡también todas las rutas deben ser registrada antes que esto!
 app.use(errorHandler)
 
-const PORT = 3000;
+const PORT = 3000
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`O servidor está a escoitar no porto ${PORT}`);
+  console.log(`O servidor está a escoitar no porto ${PORT}`)
 })
