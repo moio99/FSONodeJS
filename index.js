@@ -177,5 +177,7 @@ app.use(errorHandler)
 
 const PORT = 3000;
 app.listen(PORT, '0.0.0.0', () => {
+  console.log(process.env.MONGODB_URI.toString().substring(0,7) );
+  console.log(process.env.MONGODB_URI.toString().substring(0,23) );
   console.log(`O servidor está a escoitar no porto ${PORT}`);
 })
