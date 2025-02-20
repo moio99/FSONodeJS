@@ -15,8 +15,20 @@ app.use(
   })
 )
 app.use(express.static('dist'))
-
 app.use(cors())
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+
+  next(error)
+}
+
+// este debe ser el último middleware cargado, ¡también todas las rutas deben ser registrada antes que esto!
+app.use(errorHandler)
 
 mongoose.set('strictQuery',false)
 mongoose.connect(process.env.MONGODB_URI)
@@ -37,25 +49,20 @@ app.get('/api/persons', (request, response) => {
     .then(people => {
       response.json(people)
     })
-    .catch(error => {
-      console.log(error)
-      next(error)
-    })
+    .catch(error => next(error))
 })
 
-app.get('/api/persons/:id', async (request, response) => {
+app.get('/api/persons/:id', async (request, response, next) => {
   const id = request.params.id
-  Person.findById(id).then(person => {
+  Person.findById(id)
+  .then(person => {
     if (person) {
       response.json(person)
     } else {
       response.status(404).end()
     }
   })
-  .catch(error => {
-    console.log(error)
-    response.status(400).send({ error: 'malformatted id' })
-  })
+  .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response) => {
