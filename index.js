@@ -24,7 +24,8 @@ const errorHandler = (error, request, response, next) => {
     return response.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError') {
     console.error('Error type: ValidationError')
-    return response.status(400).json({ error: 'The name must be greater than 3 characters and the number greater than 5' })
+    console.error(error.message)
+    return response.status(400).json({ error: error.message })
   } else {
     console.error('Error type: other')
     console.error(error.message)
@@ -40,12 +41,24 @@ mongoose.connect(process.env.MONGODB_URI)
 const personSchema = new mongoose.Schema({
   name: {
     type: String,
+    validate: {
+      validator: function(v) {
+        return /^.{3,}$/.test(v);
+      },
+      message: props => `${props.value} must be greater than 3`
+    },
     minLength: 3,
     required: true
   },
   number: {
     type: String,
-    minLength: 5,
+    validate: {
+      validator: function(v) {
+        return /^\d{2,3}-\d{7,8}$/.test(v);
+      },
+      message: props => `${props.value} is not a valid phone number`
+    },
+    minLength: 8,
     required: true
   },
 })
