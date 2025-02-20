@@ -109,34 +109,18 @@ app.post('/api/persons', (request, response) => {
     return response.status(400).json({ 
       error: 'In order to register, the name and number are required.' 
     })
-  } else if (nameAlreadyExists(body.name)) {
-    return response.status(400).json({ error: 'name must be unique' })
   }
 
-  const person = {
+  const person = new Person({
     name: body.name,
     number: body.number,
-    id: generateId(),
-  }
-  persons = persons.concat(person)
+  })
+  person.save().then(result => {
+    console.log(`Added ${result.name} number ${result.number} to phonebook`)
+  })
 
   response.json(person)
 })
-
-const generateId = () => {
-  let newId = 0
-  let person = ''
-  while (person !== undefined) {
-    newId = Math.floor(Math.random() * (10000 - 100 + 1)) + 100
-    person = persons.find(person => person.id === newId.toString())
-  }
-  return newId.toString()
-}
-
-const nameAlreadyExists = (name) => {
-  const person = persons.find(person => person.name === name)
-  return person ? true : false
-}
 
 const PORT = 3000;
 app.listen(PORT, '0.0.0.0', () => {
