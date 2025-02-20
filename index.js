@@ -112,6 +112,29 @@ app.post('/api/persons', (request, response) => {
   response.json(person)
 })
 
+app.put('/api/persons/:id', (request, response, next) => {
+  const body = request.body
+  const id = request.params.id
+
+  if (!body.number) {
+    return response.status(400).json({ 
+      error: 'In order to update, the number is required.' 
+    })
+  }
+
+  const person = new Person({
+    name: body.name,
+    number: body.number,
+    _id: id
+  })
+
+  Person.findByIdAndUpdate(id, person, { new: true })
+    .then(updatedPerson => {
+      response.json(updatedPerson)
+    })
+    .catch(error => next(error))
+})
+
 const PORT = 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`O servidor está a escoitar no porto ${PORT}`);
