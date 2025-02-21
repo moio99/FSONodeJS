@@ -1,4 +1,4 @@
-const express = require('express')
+/* const express = require('express')
 const app = express()
 const cors = require('cors')
 const mongoose = require('mongoose')
@@ -43,8 +43,12 @@ app.post('/api/blogs', (request, response) => {
       response.status(201).json(result)
     })
 })
+ */
 
-const PORT = process.env.PORT
-app.listen(PORT, () => {
-  console.log(`O servidor está a escoitar no porto ${PORT}`)
+const app = require('./app')
+const config = require('./utils/config')
+const logger = require('./utils/logger')
+
+app.listen(config.PORT, '0.0.0.0', () => {
+  logger.info(`O servidor está a escoitar no porto ${config.PORT}`)
 })
