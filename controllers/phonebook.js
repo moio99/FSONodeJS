@@ -2,12 +2,6 @@ const fhonebookRouter = require('express').Router()
 const Person = require('../models/person')
 const logger = require('../utils/logger')
 
-fhonebookRouter.get('/', (request, response) => {
-  Person.find({}).then(people => {
-    response.json(people)
-  })
-})
-
 fhonebookRouter.get('/', (request, response, next) => {
   Person.find({})
     .then(people => {
