@@ -132,11 +132,45 @@ describe('Most blogs', () => {
   test('when list has only one blog, return the same', () => {
     const newList = [blogList[0]]
     const result = listHelper.mostBlogs(newList)
-    assert.deepStrictEqual(result.author, newList[0].author)
+    assert.strictEqual(result.author, newList[0].author)
   })
 
   test('When the list has multiple blogs, returns the author with the most blogs and their number', () => {
     const result = listHelper.mostBlogs(blogList)
+    assert.strictEqual(result.author, blogList[1].author)
+  })
+})
+
+describe('Most blogs', () => {
+
+  const blogList = [
+    { title: 'Título01', author: 'author A', url: 'umha direiçom 01', likes: 2 },
+    { title: 'Título02', author: 'author B', url: 'umha direiçom 02', likes: 2 },
+    { title: 'Título03', author: 'author C', url: 'umha direiçom 03', likes: 1 },
+    { title: 'Título04', author: 'author B', url: 'umha direiçom 04', likes: 5 },
+    { title: 'Título05', author: 'author C', url: 'umha direiçom 05', likes: 1 },
+    { title: 'Título06', author: 'author A', url: 'umha direiçom 06', likes: 3 },
+    { title: 'Título07', author: 'author A', url: 'umha direiçom 07', likes: 1 },
+  ]
+
+  test('when list is null, return null', () => {
+    const result = listHelper.mostLikes(null)
+    assert.strictEqual(result, null)
+  })
+
+  test('when list has not blogs, return null', () => {
+    const result = listHelper.mostLikes([])
+    assert.strictEqual(result, null)
+  })
+
+  test('when list has only one blog, return the same', () => {
+    const newList = [blogList[0]]
+    const result = listHelper.mostLikes(newList)
+    assert.strictEqual(result.author, newList[0].author)
+  })
+
+  test('When the list has multiple blogs, returns the author with the most blogs and their number', () => {
+    const result = listHelper.mostLikes(blogList)
     assert.strictEqual(result.author, blogList[1].author)
   })
 })
