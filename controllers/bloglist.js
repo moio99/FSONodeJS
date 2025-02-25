@@ -18,6 +18,9 @@ bloglistRouter.post('/', (request, response) => {
       error: 'No body send'
     })
   }
+  if (!body.likes) {
+    body.likes = 0
+  }
 
   const newBlog = new Blog(body)
   newBlog.save()

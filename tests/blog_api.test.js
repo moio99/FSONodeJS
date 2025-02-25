@@ -44,12 +44,12 @@ test('the identifier is called "id" and not "_id"', async () => {
   })
 })
 
-test('a valid blog can be added ', async () => {
-  const newNote = { title: 'Título03', author: 'author C', url: 'umha direiçom 03', likes: 3 }
+test('a valid blog can be added', async () => {
+  const newBlog = { title: 'Título03', author: 'author C', url: 'umha direiçom 03', likes: 3 }
 
   await api
     .post('/api/blogs')
-    .send(newNote)
+    .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
 
@@ -58,6 +58,21 @@ test('a valid blog can be added ', async () => {
 
   assert.strictEqual(response.body.length, initialBlogs.length + 1)
   assert(titles.includes('Título03'))
+})
+
+test('a blog without likes adds likes equal to 0', async () => {
+  const newBlog = { title: 'Título04', author: 'author D', url: 'umha direiçom 04' }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const response = await api.get('/api/blogs')
+  const blog = response.body.find(b => b.title === newBlog.title)
+
+  assert.strictEqual(blog.likes, 0)
 })
 
 after(async () => {
