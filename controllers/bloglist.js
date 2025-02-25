@@ -3,12 +3,15 @@ const Blog = require('../models/blog')
 const logger = require('../utils/logger')
 
 bloglistRouter.get('/', async (request, response) => {
-  Blog
-    .find({})
-    .then(blogs => {
-      response.json(blogs)
-    })
-    .catch(error => next(error))
+  try {
+    Blog
+      .find({})
+      .then(blogs => {
+        response.json(blogs)
+      })
+  } catch(exception) {
+    next(exception)
+  }
 })
 
 bloglistRouter.post('/', (request, response) => {
@@ -17,24 +20,34 @@ bloglistRouter.post('/', (request, response) => {
     return response.status(400).json({
       error: 'No body send'
     })
-  }
-  if (!body.likes) {
+  } else if (!body.title) {
+    return response.status(400).json({
+      error: 'No Title send'
+    })
+  } else if (!body.url) {
+    return response.status(400).json({
+      error: 'No URL send'
+    })
+  } else if (!body.likes) {
     body.likes = 0
   }
 
   const newBlog = new Blog(body)
-  newBlog.save()
-    .then(result => {
-      logger.info(`Added ${result.title} author ${result.author} to blog list`)
+  try {
+    newBlog.save()
+      .then(result => {
+        logger.info(`Added ${result.title} author ${result.author} to blog list`)
 
-      const blogResponse = {
-        name: body.name,
-        number: body.number,
-        id: result._id.toString()
-      }
-      response.status(201).json(blogResponse)
-    })
-    .catch(error => next(error))
+        const blogResponse = {
+          name: body.name,
+          number: body.number,
+          id: result._id.toString()
+        }
+        response.status(201).json(blogResponse)
+      })
+  } catch(exception) {
+    next(exception)
+  }
 })
 
 module.exports = bloglistRouter

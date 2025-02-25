@@ -15,11 +15,10 @@ const initialBlogs = [
 beforeEach(async () => {
   await Blog.deleteMany({})
 
-  let blogObject = new Blog(initialBlogs[0])
-  await blogObject.save()
-
-  blogObject = new Blog(initialBlogs[1])
-  await blogObject.save()
+  for (let blog of initialBlogs) {
+    let blogObject = new Blog(blog)
+    await blogObject.save()
+  }
 })
 
 test('blogs are returned as json', async () => {
@@ -73,6 +72,27 @@ test('a blog without likes adds likes equal to 0', async () => {
   const blog = response.body.find(b => b.title === newBlog.title)
 
   assert.strictEqual(blog.likes, 0)
+})
+
+test('a blog without title or url adds return 400', async () => {
+  const newBlog = { author: 'author E', url: 'umha direiçom 05', likes: 5 }
+  const newBlog2 = { title: 'Título05', author: 'author E', likes: 5 }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400)
+
+  const response = await api.get('/api/blogs')
+  assert.strictEqual(response.body.length, initialBlogs.length)
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog2)
+    .expect(400)
+
+  const response2 = await api.get('/api/blogs')
+  assert.strictEqual(response2.body.length, initialBlogs.length)
 })
 
 after(async () => {
