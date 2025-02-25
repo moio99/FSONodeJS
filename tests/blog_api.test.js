@@ -44,6 +44,22 @@ test('the identifier is called "id" and not "_id"', async () => {
   })
 })
 
+test('a valid blog can be added ', async () => {
+  const newNote = { title: 'Título03', author: 'author C', url: 'umha direiçom 03', likes: 3 }
+
+  await api
+    .post('/api/blogs')
+    .send(newNote)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const response = await api.get('/api/blogs')
+  const titles = response.body.map(r => r.title)
+
+  assert.strictEqual(response.body.length, initialBlogs.length + 1)
+  assert(titles.includes('Título03'))
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
