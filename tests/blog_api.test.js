@@ -1,176 +1,40 @@
-const { test, describe } = require('node:test')
+const { test, after, beforeEach } = require('node:test')
 const assert = require('node:assert')
-const listHelper = require('../utils/list_helper')
+const mongoose = require('mongoose')
+const supertest = require('supertest')
+const app = require('../app')
+const api = supertest(app)
 
-test('dummy returns one', () => {
-  const blogs = []
+const Blog = require('../models/blog')
 
-  const result = listHelper.dummy(blogs)
-  assert.strictEqual(result, 1)
+const initialBlogs = [
+  { title: 'Título01', author: 'author A', url: 'umha direiçom 01', likes: 2 },
+  { title: 'Título02', author: 'author B', url: 'umha direiçom 02', likes: 5 },
+]
+
+beforeEach(async () => {
+  await Blog.deleteMany({})
+
+  let blogObject = new Blog(initialBlogs[0])
+  await blogObject.save()
+
+  blogObject = new Blog(initialBlogs[1])
+  await blogObject.save()
 })
 
-describe('Total likes', () => {
-
-  const blogList = [
-    {
-      title: 'Título01',
-      author: 'Nome da pessoa para o 01',
-      url: 'umha direiçom 01',
-      likes: 2
-    },
-    {
-      title: 'Título02',
-      author: 'Nome da pessoa para o 02',
-      url: 'umha direiçom 02',
-      likes: 5
-    }
-  ]
-
-  test('when list is null, return 0', () => {
-    const result = listHelper.totalLikes(null)
-    assert.strictEqual(result, 0)
-  })
-
-  test('when list has not blogs, return 0', () => {
-    const result = listHelper.totalLikes([])
-    assert.strictEqual(result, 0)
-  })
-
-  test('when list has only one blog, equals the likes of that', () => {
-    const newList = [blogList[0]]
-    const result = listHelper.totalLikes(newList)
-    assert.strictEqual(result, newList[0].likes)
-  })
-
-  test('when list has several blogs, return de sum', () => {
-    const result = listHelper.totalLikes(blogList)
-    assert.strictEqual(result, 7)
-  })
+test('blogs are returned as json', async () => {
+  await api
+    .get('/api/blogs')
+    .expect(200)
+    .expect('Content-Type', /application\/json/)
 })
 
-describe('Favorite blog', () => {
+test('there are two blogs', async () => {
+  const response = await api.get('/api/blogs')
 
-  const blogList = [
-    {
-      title: 'Título01',
-      author: 'Nome da pessoa para o 01',
-      likes: 2
-    },
-    {
-      title: 'Título02',
-      author: 'Nome da pessoa para o 02',
-      likes: 5
-    },
-    {
-      title: 'Título03',
-      author: 'Nome da pessoa para o 03',
-      likes: 3
-    }
-  ]
-
-  test('when list is null, return null', () => {
-    const result = listHelper.favoriteBlog(null)
-    assert.strictEqual(result, null)
-  })
-
-  test('when list has not blogs, return null', () => {
-    const result = listHelper.favoriteBlog([])
-    assert.strictEqual(result, null)
-  })
-
-  test('when list has only one blog, return the same', () => {
-    const newList = [blogList[0]]
-    const result = listHelper.favoriteBlog(newList)
-    assert.deepStrictEqual(result, newList[0])
-  })
-
-  test('When the list has multiple blogs, return the largest one', () => {
-    const result = listHelper.favoriteBlog(blogList)
-    assert.deepStrictEqual(result, blogList[1])
-  })
+  assert.strictEqual(response.body.length, 2)
 })
 
-describe('Most blogs', () => {
-
-  const blogList = [
-    {
-      title: 'Título01',
-      author: 'author A',
-      url: 'umha direiçom 01',
-      likes: 4
-    },
-    {
-      title: 'Título02',
-      author: 'author B',
-      url: 'umha direiçom 02',
-      likes: 5
-    },
-    {
-      title: 'Título03',
-      author: 'author C',
-      url: 'umha direiçom 03',
-      likes: 1
-    },
-    {
-      title: 'Título04',
-      author: 'author B',
-      url: 'umha direiçom 04',
-      likes: 3
-    },
-  ]
-
-  test('when list is null, return null', () => {
-    const result = listHelper.mostBlogs(null)
-    assert.strictEqual(result, null)
-  })
-
-  test('when list has not blogs, return null', () => {
-    const result = listHelper.mostBlogs([])
-    assert.strictEqual(result, null)
-  })
-
-  test('when list has only one blog, return the same', () => {
-    const newList = [blogList[0]]
-    const result = listHelper.mostBlogs(newList)
-    assert.strictEqual(result.author, newList[0].author)
-  })
-
-  test('When the list has multiple blogs, returns the author with the most blogs and their number', () => {
-    const result = listHelper.mostBlogs(blogList)
-    assert.strictEqual(result.author, blogList[1].author)
-  })
-})
-
-describe('Most blogs', () => {
-
-  const blogList = [
-    { title: 'Título01', author: 'author A', url: 'umha direiçom 01', likes: 2 },
-    { title: 'Título02', author: 'author B', url: 'umha direiçom 02', likes: 2 },
-    { title: 'Título03', author: 'author C', url: 'umha direiçom 03', likes: 1 },
-    { title: 'Título04', author: 'author B', url: 'umha direiçom 04', likes: 5 },
-    { title: 'Título05', author: 'author C', url: 'umha direiçom 05', likes: 1 },
-    { title: 'Título06', author: 'author A', url: 'umha direiçom 06', likes: 3 },
-    { title: 'Título07', author: 'author A', url: 'umha direiçom 07', likes: 1 },
-  ]
-
-  test('when list is null, return null', () => {
-    const result = listHelper.mostLikes(null)
-    assert.strictEqual(result, null)
-  })
-
-  test('when list has not blogs, return null', () => {
-    const result = listHelper.mostLikes([])
-    assert.strictEqual(result, null)
-  })
-
-  test('when list has only one blog, return the same', () => {
-    const newList = [blogList[0]]
-    const result = listHelper.mostLikes(newList)
-    assert.strictEqual(result.author, newList[0].author)
-  })
-
-  test('When the list has multiple blogs, returns the author with the most blogs and their number', () => {
-    const result = listHelper.mostLikes(blogList)
-    assert.strictEqual(result.author, blogList[1].author)
-  })
+after(async () => {
+  await mongoose.connection.close()
 })
