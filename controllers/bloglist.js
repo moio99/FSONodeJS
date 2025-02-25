@@ -16,20 +16,10 @@ bloglistRouter.get('/', async (request, response) => {
 
 bloglistRouter.post('/', (request, response) => {
   const body = request.body
-  if (!body) {
-    return response.status(400).json({
-      error: 'No body send'
-    })
-  } else if (!body.title) {
-    return response.status(400).json({
-      error: 'No Title send'
-    })
-  } else if (!body.url) {
-    return response.status(400).json({
-      error: 'No URL send'
-    })
-  } else if (!body.likes) {
-    body.likes = 0
+  const validationError = validateBlog(body)
+
+  if (validationError) {
+    return response.status(validationError.status).json({ error: validationError.error })
   }
 
   const newBlog = new Blog(body)
@@ -39,8 +29,10 @@ bloglistRouter.post('/', (request, response) => {
         logger.info(`Added ${result.title} author ${result.author} to blog list`)
 
         const blogResponse = {
-          name: body.name,
-          number: body.number,
+          title: body.title,
+          author: body.author,
+          url: body.url,
+          likes: body.likes,
           id: result._id.toString()
         }
         response.status(201).json(blogResponse)
@@ -49,6 +41,44 @@ bloglistRouter.post('/', (request, response) => {
     next(exception)
   }
 })
+
+bloglistRouter.put('/:id', async (request, response) => {
+  const body = request.body
+  const validationError = validateBlog(body)
+
+  if (validationError) {
+    return response.status(validationError.status).json({ error: validationError.error })
+  }
+
+  const blog = {
+    title: body.title,
+    author: body.author,
+    url: body.url,
+    likes: body.likes,
+  }
+
+  try {
+    await Blog.findByIdAndUpdate(request.params.id, blog, { new: true })
+      .then(updatedBlog => {
+        response.status(202).json(updatedBlog)
+      })
+  } catch(exception) {
+    next(exception)
+  }
+})
+
+const validateBlog = (body) => {
+  if (!body) {
+    return { status: 400, error: 'No body send' }
+  } else if (!body.title) {
+    return { status: 400, error: 'No Title send' }
+  } else if (!body.url) {
+    return { status: 400, error: 'No URL send' }
+  } else if (!body.likes) {
+    body.likes = 0
+  }
+  return null
+}
 
 bloglistRouter.get('/:id', async (request, response, next) => {
   try {

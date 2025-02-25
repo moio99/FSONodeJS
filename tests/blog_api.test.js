@@ -8,6 +8,7 @@ const api = supertest(app)
 const helper = require('./test_helper')
 
 const Blog = require('../models/blog')
+const { title } = require('node:process')
 
 beforeEach(async () => {
   await Blog.deleteMany({})
@@ -129,6 +130,59 @@ describe('deletion of a blog', () => {
 
     const titles = blogsAtEnd.map(r => r.title)
     assert(!titles.includes(blogToDelete.title))
+  })
+})
+
+describe('updation of a new blog', () => {
+  test('a valid blog can be updated', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    let blog = blogsAtStart[0]
+    blog.likes = blog.likes * 10
+
+    await api
+      .put(`/api/blogs/${blog.id}`)
+      .send(blog)
+      .expect(202)
+      .expect('Content-Type', /application\/json/)
+
+    const response = await api.get(`/api/blogs/${blog.id}`)
+    const updatedBlog = response.body
+
+    assert.strictEqual(blog.likes, updatedBlog.likes)
+  })
+
+  test('a blog without likes updates likes equal to 0', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const sendBlog = { id: blogsAtStart[0].id, title: blogsAtStart[0].title, author: blogsAtStart[0].author, url: blogsAtStart[0].url }
+
+    await api
+      .put(`/api/blogs/${sendBlog.id}`)
+      .send(sendBlog)
+      .expect(202)
+      .expect('Content-Type', /application\/json/)
+
+    const response = await api.get(`/api/blogs/${sendBlog.id}`)
+    const updatedBlog = response.body
+
+    assert.strictEqual(updatedBlog.likes, 0)
+  })
+
+  test('a blog without title or url updates return 400', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const sendBlog = { id: blogsAtStart[0].id, author: blogsAtStart[0].author, url: blogsAtStart[0].url,
+      likes: blogsAtStart[0].likes }
+    const sendBlog2 = { id: blogsAtStart[0].id, title: blogsAtStart[0].title, author: blogsAtStart[0].author,
+      likes: blogsAtStart[0].likes }
+
+    await api
+      .put(`/api/blogs/${sendBlog.id}`)
+      .send(sendBlog)
+      .expect(400)
+
+    await api
+      .put(`/api/blogs/${sendBlog2.id}`)
+      .send(sendBlog2)
+      .expect(400)
   })
 })
 
