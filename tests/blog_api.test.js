@@ -133,7 +133,7 @@ describe('deletion of a blog', () => {
   })
 })
 
-describe('updation of a new blog', () => {
+describe('updation of a blog', () => {
   test('a valid blog can be updated', async () => {
     const blogsAtStart = await helper.blogsInDb()
     let blog = blogsAtStart[0]
