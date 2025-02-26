@@ -18,28 +18,25 @@ bloglistRouter.get('/', async (request, response) => {
 })
 
 bloglistRouter.post('/', async (request, response) => {
-  const decodedToken = await validateToken(request, response)
-  if (decodedToken) {
-    const body = request.body
-    const validationError = validateBlog(body)
-    if (validationError) {
-      return response.status(validationError.status).json({ error: validationError.error })
-    }
+  const body = request.body
+  const validationError = validateBlog(body)
+  if (validationError) {
+    return response.status(validationError.status).json({ error: validationError.error })
+  }
 
-    const user = await User.findById(decodedToken.id)
-    const newBlog = new Blog({
-      title: body.title, author: body.author, url: body.url, likes: body.likes, user: user._id
-    })
+  const user = await User.findById(request.user)
+  const newBlog = new Blog({
+    title: body.title, author: body.author, url: body.url, likes: body.likes, user: user._id
+  })
 
-    try {
-      const blogResponse = await newBlog.save()
-      user.blogs = user.blogs.concat(blogResponse._id)
-      await user.save()
+  try {
+    const blogResponse = await newBlog.save()
+    user.blogs = user.blogs.concat(blogResponse._id)
+    await user.save()
 
-      response.status(201).json(blogResponse)
-    } catch(exception) {
-      next(exception)
-    }
+    response.status(201).json(blogResponse)
+  } catch(exception) {
+    next(exception)
   }
 })
 
@@ -110,23 +107,20 @@ bloglistRouter.get('/:id', async (request, response, next) => {
 })
 
 bloglistRouter.delete('/:id', async (request, response, next) => {
-  const decodedToken = await validateToken(request, response)
-  if (decodedToken) {
-    const user = await User.findById(decodedToken.id)
-
-    try {
-      const blog = await Blog.findById(request.params.id)
-      if (!blog) {
-        return { status: 400, error: 'No blog find' }
-      } else if (user._id.toString() === blog.user.toString()) {
-        await Blog.findByIdAndDelete(request.params.id)
-        response.status(204).end()
-      } else {
-        response.status(400).end('The user is not the same one who created the blog')
-      }
-    } catch(exception) {
-      next(exception)
+  try {
+    const blog = await Blog.findById(request.params.id)
+    if (!blog) {
+      return { status: 400, error: 'No blog find' }
+    } else if (request.user === blog.user.toString()) {
+      await Blog.findByIdAndDelete(request.params.id)
+      response.status(204).end()
+    } else if (!request.user) {
+      response.status(400).end('No token')
+    } else {
+      response.status(400).end('The user is not the same one who created the blog')
     }
+  } catch(exception) {
+    next(exception)
   }
 })
 

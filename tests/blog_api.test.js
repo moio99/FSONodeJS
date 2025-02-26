@@ -182,8 +182,8 @@ describe('deletion of a blog', () => {
 
     const response = await api
       .delete(`/api/blogs/${blogToDelete.id}`)
-      .expect(401)
-    assert(response.error.text.toString().includes('invalid signature'))
+      .expect(400)
+    assert(response.error.text.toString().includes('No token'))
   })
 })
 
@@ -385,7 +385,7 @@ describe('login tests', () => {
 
     assert(result.body.error.includes('invalid username or password'))
   })
-})
+}) 
 
 after(async () => {
   await User.deleteMany({})
