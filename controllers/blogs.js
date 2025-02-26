@@ -1,11 +1,13 @@
 const bloglistRouter = require('express').Router()
 const Blog = require('../models/blog')
+const User = require('../models/user')
 const logger = require('../utils/logger')
 
 bloglistRouter.get('/', async (request, response) => {
   try {
     Blog
       .find({})
+      .populate('user', { username: 1, name: 1, id: 1 })
       .then(blogs => {
         response.json(blogs)
       })
@@ -14,7 +16,7 @@ bloglistRouter.get('/', async (request, response) => {
   }
 })
 
-bloglistRouter.post('/', (request, response) => {
+bloglistRouter.post('/', async (request, response) => {
   const body = request.body
   const validationError = validateBlog(body)
 
@@ -22,21 +24,22 @@ bloglistRouter.post('/', (request, response) => {
     return response.status(validationError.status).json({ error: validationError.error })
   }
 
-  const newBlog = new Blog(body)
-  try {
-    newBlog.save()
-      .then(result => {
-        logger.info(`Added ${result.title} author ${result.author} to blog list`)
+  const user = await User.findById(body.user)
 
-        const blogResponse = {
-          title: body.title,
-          author: body.author,
-          url: body.url,
-          likes: body.likes,
-          id: result._id.toString()
-        }
-        response.status(201).json(blogResponse)
-      })
+  const newBlog = new Blog({
+    title: body.title,
+    author: body.author,
+    url: body.url,
+    likes: body.likes,
+    user: user._id
+  })
+
+  try {
+    const blogResponse = await newBlog.save()
+    user.blogs = user.blogs.concat(blogResponse._id)
+    await user.save()
+
+    response.status(201).json(blogResponse)
   } catch(exception) {
     next(exception)
   }
@@ -82,7 +85,9 @@ const validateBlog = (body) => {
 
 bloglistRouter.get('/:id', async (request, response, next) => {
   try {
-    const blog = await Blog.findById(request.params.id)
+    const blog = await Blog
+      .findById(request.params.id)
+      .populate('user', { username: 1, name: 1, id: 1 })
     if (blog) {
       response.json(blog)
     } else {

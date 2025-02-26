@@ -10,7 +10,6 @@ const helper = require('./test_helper')
 
 const Blog = require('../models/blog')
 const User = require('../models/user')
-const { title } = require('node:process')
 
 beforeEach(async () => {
   await Blog.deleteMany({})
@@ -64,8 +63,18 @@ describe('viewing a specific blog', () => {
 })
 
 describe('addition of a new blog', () => {
+  beforeEach(async () => {
+    await User.deleteMany({})
+
+    const passwordHash = await bcrypt.hash('segredo', 10)
+    const user = new User({ username: 'root', name:'Iago Outeiro', passwordHash })
+
+    await user.save()
+  })
+
   test('a valid blog can be added', async () => {
-    const newBlog = { title: 'Título03', author: 'author C', url: 'umha direiçom 03', likes: 3 }
+    const usersAtEnd = await helper.usersInDb()
+    const newBlog = { title: 'Título03', author: 'author C', url: 'umha direiçom 03', likes: 3, user: usersAtEnd[0].id }
 
     await api
       .post('/api/blogs')
@@ -81,7 +90,8 @@ describe('addition of a new blog', () => {
   })
 
   test('a blog without likes adds likes equal to 0', async () => {
-    const newBlog = { title: 'Título04', author: 'author D', url: 'umha direiçom 04' }
+    const usersAtEnd = await helper.usersInDb()
+    const newBlog = { title: 'Título04', author: 'author D', url: 'umha direiçom 04', user: usersAtEnd[0].id }
 
     await api
       .post('/api/blogs')
@@ -96,8 +106,9 @@ describe('addition of a new blog', () => {
   })
 
   test('a blog without title or url adds return 400', async () => {
-    const newBlog = { author: 'author E', url: 'umha direiçom 05', likes: 5 }
-    const newBlog2 = { title: 'Título05', author: 'author E', likes: 5 }
+    const usersAtEnd = await helper.usersInDb()
+    const newBlog = { author: 'author E', url: 'umha direiçom 05', likes: 5, user: usersAtEnd[0].id }
+    const newBlog2 = { title: 'Título05', author: 'author E', likes: 5, user: usersAtEnd[0].id }
 
     await api
       .post('/api/blogs')
@@ -155,7 +166,8 @@ describe('updation of a blog', () => {
 
   test('a blog without likes updates likes equal to 0', async () => {
     const blogsAtStart = await helper.blogsInDb()
-    const sendBlog = { id: blogsAtStart[0].id, title: blogsAtStart[0].title, author: blogsAtStart[0].author, url: blogsAtStart[0].url }
+    const sendBlog = { id: blogsAtStart[0].id, title: blogsAtStart[0].title, author: blogsAtStart[0].author,
+      url: blogsAtStart[0].url, user: blogsAtStart[0].user }
 
     await api
       .put(`/api/blogs/${sendBlog.id}`)
@@ -172,9 +184,9 @@ describe('updation of a blog', () => {
   test('a blog without title or url updates return 400', async () => {
     const blogsAtStart = await helper.blogsInDb()
     const sendBlog = { id: blogsAtStart[0].id, author: blogsAtStart[0].author, url: blogsAtStart[0].url,
-      likes: blogsAtStart[0].likes }
+      likes: blogsAtStart[0].likes, user: blogsAtStart[0].user }
     const sendBlog2 = { id: blogsAtStart[0].id, title: blogsAtStart[0].title, author: blogsAtStart[0].author,
-      likes: blogsAtStart[0].likes }
+      likes: blogsAtStart[0].likes, user: blogsAtStart[0].user }
 
     await api
       .put(`/api/blogs/${sendBlog.id}`)
