@@ -1,7 +1,16 @@
+const jwt = require('jsonwebtoken')
 const bloglistRouter = require('express').Router()
 const Blog = require('../models/blog')
 const User = require('../models/user')
 const logger = require('../utils/logger')
+
+const getTokenFrom = request => {
+  const authorization = request.get('authorization')
+  if (authorization && authorization.startsWith('Bearer ')) {
+    return authorization.replace('Bearer ', '')
+  }
+  return null
+}
 
 bloglistRouter.get('/', async (request, response) => {
   try {
@@ -17,6 +26,16 @@ bloglistRouter.get('/', async (request, response) => {
 })
 
 bloglistRouter.post('/', async (request, response) => {
+  let decodedToken
+  try {
+    decodedToken = jwt.verify(getTokenFrom(request), process.env.SECRET_FOR_TOKEN)
+    if (!decodedToken.id) {
+      return response.status(401).json({ error: 'token invalid' })
+    }
+  } catch(exception) {
+    return response.status(401).json({ error: 'invalid signature' })
+  }
+
   const body = request.body
   const validationError = validateBlog(body)
 
@@ -24,7 +43,7 @@ bloglistRouter.post('/', async (request, response) => {
     return response.status(validationError.status).json({ error: validationError.error })
   }
 
-  const user = await User.findById(body.user)
+  const user = await User.findById(decodedToken.id)
 
   const newBlog = new Blog({
     title: body.title,
