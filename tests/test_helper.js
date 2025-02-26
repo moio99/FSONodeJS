@@ -6,6 +6,8 @@ const initialBlogs = [
   { title: 'Título02', author: 'author B', url: 'umha direiçom 02', likes: 5 },
 ]
 
+const userRoot = { username: 'root', name:'Iago Outeiro', password: 'segredo' }
+
 const nonExistingId = async () => {
   const blog = new Blog({ title: 'TítuloXX', author: 'author X', url: 'umha direiçom XX' })
   await blog.save()
@@ -24,6 +26,16 @@ const usersInDb = async () => {
   return users.map(user => user.toJSON())
 }
 
+const getToken = async (api) => {
+  const login = await api
+    .post('/api/login')
+    .send(userRoot)
+    .expect(200)
+    .expect('Content-Type', /application\/json/)
+
+  return login.body.token
+}
+
 module.exports = {
-  initialBlogs, nonExistingId, blogsInDb, usersInDb
+  initialBlogs, userRoot, nonExistingId, blogsInDb, usersInDb, getToken
 }

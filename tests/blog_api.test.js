@@ -12,7 +12,13 @@ const Blog = require('../models/blog')
 const User = require('../models/user')
 
 beforeEach(async () => {
+  await User.deleteMany({})
   await Blog.deleteMany({})
+
+  const passwordHash = await bcrypt.hash(helper.userRoot.password, 10)
+  const user = new User({ username: helper.userRoot.username, name:helper.userRoot.name, passwordHash })
+
+  await user.save()
 
   for (let blog of helper.initialBlogs) {
     let blogObject = new Blog(blog)
@@ -67,7 +73,7 @@ describe('addition of a new blog', () => {
     await User.deleteMany({})
 
     const passwordHash = await bcrypt.hash('segredo', 10)
-    const user = new User({ username: 'root', name:'Iago Outeiro', passwordHash })
+    const user = new User({ username: helper.userRoot.username, name:'Iago Outeiro', passwordHash })
 
     await user.save()
   })
@@ -76,8 +82,15 @@ describe('addition of a new blog', () => {
     const usersAtEnd = await helper.usersInDb()
     const newBlog = { title: 'Título03', author: 'author C', url: 'umha direiçom 03', likes: 3, user: usersAtEnd[0].id }
 
+    const user = {
+      username: helper.userRoot.username,
+      password: helper.userRoot.password,
+    }
+
+    const token = await helper.getToken(api)
     await api
       .post('/api/blogs')
+      .auth(token, { type: 'bearer' })
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -93,8 +106,10 @@ describe('addition of a new blog', () => {
     const usersAtEnd = await helper.usersInDb()
     const newBlog = { title: 'Título04', author: 'author D', url: 'umha direiçom 04', user: usersAtEnd[0].id }
 
+    const token = await helper.getToken(api)
     await api
       .post('/api/blogs')
+      .auth(token, { type: 'bearer' })
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -110,8 +125,10 @@ describe('addition of a new blog', () => {
     const newBlog = { author: 'author E', url: 'umha direiçom 05', likes: 5, user: usersAtEnd[0].id }
     const newBlog2 = { title: 'Título05', author: 'author E', likes: 5, user: usersAtEnd[0].id }
 
+    const token = await helper.getToken(api)
     await api
       .post('/api/blogs')
+      .auth(token, { type: 'bearer' })
       .send(newBlog)
       .expect(400)
 
@@ -120,6 +137,7 @@ describe('addition of a new blog', () => {
 
     await api
       .post('/api/blogs')
+      .auth(token, { type: 'bearer' })
       .send(newBlog2)
       .expect(400)
 
@@ -201,15 +219,6 @@ describe('updation of a blog', () => {
 })
 
 describe('when there is initially one user at db', () => {
-  beforeEach(async () => {
-    await User.deleteMany({})
-
-    const passwordHash = await bcrypt.hash('segredo', 10)
-    const user = new User({ username: 'root', name:'Iago Outeiro', passwordHash })
-
-    await user.save()
-  })
-
   test('creation succeeds with a fresh username', async () => {
     const usersAtStart = await helper.usersInDb()
     const newUser = {
@@ -244,7 +253,6 @@ describe('when there is initially one user at db', () => {
       .expect('Content-Type', /application\/json/)
 
     assert(result.body.error.includes('The username must be at least 3 characters long'))
-    console.log(result.body.error)
 
     const result2 = await api
       .post('/api/users')
@@ -261,7 +269,7 @@ describe('when there is initially one user at db', () => {
     const usersAtStart = await helper.usersInDb()
 
     const newUser = {
-      username: 'root',
+      username: helper.userRoot.username,
       name: 'Outro usuario root',
       password: 'supersuper',
     }
@@ -277,6 +285,82 @@ describe('when there is initially one user at db', () => {
     assert(result.body.error.includes('expected `username` to be unique'))
 
     assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+  })
+})
+
+describe('login tests', () => {
+  test('login successful', async () => {
+    const user = {
+      username: helper.userRoot.username,
+      password: helper.userRoot.password,
+    }
+
+    const result = await api
+      .post('/api/login')
+      .send(user)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    assert.strictEqual(user.username, result.body.username)
+    assert.ok(result.body.token.length > 0)
+  })
+
+  test('login failed no username', async () => {
+    const user = {
+      password: helper.userRoot.password,
+    }
+
+    const result = await api
+      .post('/api/login')
+      .send(user)
+      .expect(401)
+      .expect('Content-Type', /application\/json/)
+
+    assert(result.body.error.includes('invalid username or password'))
+  })
+
+  test('login failed no password', async () => {
+    const user = {
+      username: helper.userRoot.username,
+    }
+
+    const result = await api
+      .post('/api/login')
+      .send(user)
+      .expect(401)
+      .expect('Content-Type', /application\/json/)
+
+    assert(result.body.error.includes('invalid username or password'))
+  })
+
+  test('login failed wrong username', async () => {
+    const user = {
+      username: 'xxxxxx',
+      password: helper.userRoot.password,
+    }
+
+    const result = await api
+      .post('/api/login')
+      .send(user)
+      .expect(401)
+      .expect('Content-Type', /application\/json/)
+
+    assert(result.body.error.includes('invalid username or password'))
+  })
+
+  test('login failed wrong password', async () => {
+    const user = {
+      username: helper.userRoot.username,
+      password: 'xxxxxxx',
+    }
+
+    const result = await api
+      .post('/api/login')
+      .send(user)
+      .expect(401)
+      .expect('Content-Type', /application\/json/)
+
+    assert(result.body.error.includes('invalid username or password'))
   })
 })
 
