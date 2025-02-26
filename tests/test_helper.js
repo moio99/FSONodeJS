@@ -7,6 +7,7 @@ const initialBlogs = [
 ]
 
 const userRoot = { username: 'root', name:'Iago Outeiro', password: 'segredo' }
+const userNoRoot = { username: 'olaia', name:'Olaia Ferro', password: 'segredo' }
 
 const nonExistingId = async () => {
   const blog = new Blog({ title: 'TítuloXX', author: 'author X', url: 'umha direiçom XX' })
@@ -36,6 +37,16 @@ const getToken = async (api) => {
   return login.body.token
 }
 
+const getSecondToken = async (api) => {
+  const login = await api
+    .post('/api/login')
+    .send(userNoRoot)
+    .expect(200)
+    .expect('Content-Type', /application\/json/)
+
+  return login.body.token
+}
+
 module.exports = {
-  initialBlogs, userRoot, nonExistingId, blogsInDb, usersInDb, getToken
+  initialBlogs, userRoot, userNoRoot, nonExistingId, blogsInDb, usersInDb, getToken, getSecondToken
 }

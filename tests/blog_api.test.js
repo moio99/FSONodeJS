@@ -17,11 +17,13 @@ beforeEach(async () => {
 
   const passwordHash = await bcrypt.hash(helper.userRoot.password, 10)
   const user = new User({ username: helper.userRoot.username, name:helper.userRoot.name, passwordHash })
+  const user2 = new User({ username: helper.userNoRoot.username, name:helper.userNoRoot.name, passwordHash })
 
   await user.save()
+  await user2.save()
 
   for (let blog of helper.initialBlogs) {
-    let blogObject = new Blog(blog)
+    let blogObject = new Blog({...blog, user: user.id})
     await blogObject.save()
   }
 })
@@ -81,11 +83,6 @@ describe('addition of a new blog', () => {
   test('a valid blog can be added', async () => {
     const usersAtEnd = await helper.usersInDb()
     const newBlog = { title: 'Título03', author: 'author C', url: 'umha direiçom 03', likes: 3, user: usersAtEnd[0].id }
-
-    const user = {
-      username: helper.userRoot.username,
-      password: helper.userRoot.password,
-    }
 
     const token = await helper.getToken(api)
     await api
@@ -147,12 +144,15 @@ describe('addition of a new blog', () => {
 })
 
 describe('deletion of a blog', () => {
-  test('succeeds with status code 204 if id is valid', async () => {
+  test('succeeds with status code 204 if id user is valid', async () => {
     const blogsAtStart = await helper.blogsInDb()
     const blogToDelete = blogsAtStart[0]
 
+    const token = await helper.getToken(api)
+
     await api
       .delete(`/api/blogs/${blogToDelete.id}`)
+      .auth(token, { type: 'bearer' })
       .expect(204)
 
     const blogsAtEnd = await helper.blogsInDb()
@@ -161,6 +161,29 @@ describe('deletion of a blog', () => {
 
     const titles = blogsAtEnd.map(r => r.title)
     assert(!titles.includes(blogToDelete.title))
+  })
+
+  test('no the same user who created', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToDelete = blogsAtStart[0]
+
+    const token = await helper.getSecondToken(api)
+
+    const response = await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .auth(token, { type: 'bearer' })
+      .expect(400)
+    assert.strictEqual(response.error.text, 'The user is not the same one who created the blog')
+  })
+
+  test('no delete No token', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToDelete = blogsAtStart[0]
+
+    const response = await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(401)
+    assert(response.error.text.toString().includes('invalid signature'))
   })
 })
 

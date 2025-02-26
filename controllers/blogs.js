@@ -18,41 +18,28 @@ bloglistRouter.get('/', async (request, response) => {
 })
 
 bloglistRouter.post('/', async (request, response) => {
-  let decodedToken
-  try {
-    decodedToken = jwt.verify(request.token, process.env.SECRET_FOR_TOKEN)
-    if (!decodedToken.id) {
-      return response.status(401).json({ error: 'token invalid' })
+  const decodedToken = await validateToken(request, response)
+  if (decodedToken) {
+    const body = request.body
+    const validationError = validateBlog(body)
+    if (validationError) {
+      return response.status(validationError.status).json({ error: validationError.error })
     }
-  } catch(exception) {
-    return response.status(401).json({ error: 'invalid signature' })
-  }
 
-  const body = request.body
-  const validationError = validateBlog(body)
+    const user = await User.findById(decodedToken.id)
+    const newBlog = new Blog({
+      title: body.title, author: body.author, url: body.url, likes: body.likes, user: user._id
+    })
 
-  if (validationError) {
-    return response.status(validationError.status).json({ error: validationError.error })
-  }
+    try {
+      const blogResponse = await newBlog.save()
+      user.blogs = user.blogs.concat(blogResponse._id)
+      await user.save()
 
-  const user = await User.findById(decodedToken.id)
-
-  const newBlog = new Blog({
-    title: body.title,
-    author: body.author,
-    url: body.url,
-    likes: body.likes,
-    user: user._id
-  })
-
-  try {
-    const blogResponse = await newBlog.save()
-    user.blogs = user.blogs.concat(blogResponse._id)
-    await user.save()
-
-    response.status(201).json(blogResponse)
-  } catch(exception) {
-    next(exception)
+      response.status(201).json(blogResponse)
+    } catch(exception) {
+      next(exception)
+    }
   }
 })
 
@@ -94,6 +81,19 @@ const validateBlog = (body) => {
   return null
 }
 
+const validateToken = (request, response) => {
+  let decodedToken
+  try {
+    decodedToken = jwt.verify(request.token, process.env.SECRET_FOR_TOKEN)
+    if (!decodedToken.id) {
+      return response.status(401).json({ error: 'token invalid' })
+    }
+  } catch(exception) {
+    return response.status(401).json({ error: 'invalid signature' })
+  }
+  return decodedToken
+}
+
 bloglistRouter.get('/:id', async (request, response, next) => {
   try {
     const blog = await Blog
@@ -110,11 +110,23 @@ bloglistRouter.get('/:id', async (request, response, next) => {
 })
 
 bloglistRouter.delete('/:id', async (request, response, next) => {
-  try {
-    await Blog.findByIdAndDelete(request.params.id)
-    response.status(204).end()
-  } catch(exception) {
-    next(exception)
+  const decodedToken = await validateToken(request, response)
+  if (decodedToken) {
+    const user = await User.findById(decodedToken.id)
+
+    try {
+      const blog = await Blog.findById(request.params.id)
+      if (!blog) {
+        return { status: 400, error: 'No blog find' }
+      } else if (user._id.toString() === blog.user.toString()) {
+        await Blog.findByIdAndDelete(request.params.id)
+        response.status(204).end()
+      } else {
+        response.status(400).end('The user is not the same one who created the blog')
+      }
+    } catch(exception) {
+      next(exception)
+    }
   }
 })
 
