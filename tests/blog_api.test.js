@@ -141,6 +141,18 @@ describe('addition of a new blog', () => {
     const response2 = await api.get('/api/blogs')
     assert.strictEqual(response2.body.length, helper.initialBlogs.length)
   })
+
+  test('no add blog No token', async () => {
+    const usersAtEnd = await helper.usersInDb()
+    const newBlog = { title: 'Título03', author: 'author C', url: 'umha direiçom 03', likes: 3, user: usersAtEnd[0].id }
+
+    const response = await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+
+    assert(response.error.text.toString().includes('Unauthorized'))
+  })
 })
 
 describe('deletion of a blog', () => {
@@ -183,7 +195,7 @@ describe('deletion of a blog', () => {
     const response = await api
       .delete(`/api/blogs/${blogToDelete.id}`)
       .expect(400)
-    assert(response.error.text.toString().includes('No token'))
+    assert(response.error.text.toString().includes('Unauthorized'))
   })
 })
 
@@ -385,7 +397,7 @@ describe('login tests', () => {
 
     assert(result.body.error.includes('invalid username or password'))
   })
-}) 
+})
 
 after(async () => {
   await User.deleteMany({})

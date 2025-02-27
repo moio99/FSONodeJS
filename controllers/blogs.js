@@ -18,6 +18,10 @@ bloglistRouter.get('/', async (request, response) => {
 })
 
 bloglistRouter.post('/', async (request, response) => {
+  if (!request.user) {
+    return response.status(400).end('Unauthorized')
+  }
+
   const body = request.body
   const validationError = validateBlog(body)
   if (validationError) {
@@ -78,19 +82,6 @@ const validateBlog = (body) => {
   return null
 }
 
-const validateToken = (request, response) => {
-  let decodedToken
-  try {
-    decodedToken = jwt.verify(request.token, process.env.SECRET_FOR_TOKEN)
-    if (!decodedToken.id) {
-      return response.status(401).json({ error: 'token invalid' })
-    }
-  } catch(exception) {
-    return response.status(401).json({ error: 'invalid signature' })
-  }
-  return decodedToken
-}
-
 bloglistRouter.get('/:id', async (request, response, next) => {
   try {
     const blog = await Blog
@@ -110,12 +101,12 @@ bloglistRouter.delete('/:id', async (request, response, next) => {
   try {
     const blog = await Blog.findById(request.params.id)
     if (!blog) {
-      return { status: 400, error: 'No blog find' }
+      response.status(400).end('No blog find')
+    } else if (!request.user) {
+      response.status(400).end('Unauthorized')
     } else if (request.user === blog.user.toString()) {
       await Blog.findByIdAndDelete(request.params.id)
       response.status(204).end()
-    } else if (!request.user) {
-      response.status(400).end('No token')
     } else {
       response.status(400).end('The user is not the same one who created the blog')
     }
