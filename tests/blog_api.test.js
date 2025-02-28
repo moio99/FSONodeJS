@@ -82,7 +82,7 @@ describe('addition of a new blog', () => {
 
   test('a valid blog can be added', async () => {
     const usersAtEnd = await helper.usersInDb()
-    const newBlog = { title: 'Título03', author: 'author C', url: 'umha direiçom 03', likes: 3, user: usersAtEnd[0].id }
+    const newBlog = { title: 'Título03', author: 'author C', url: 'umha direiçom 03', likes: 3, user: usersAtEnd[0] }
 
     const token = await helper.getToken(api)
     await api
@@ -101,7 +101,7 @@ describe('addition of a new blog', () => {
 
   test('a blog without likes adds likes equal to 0', async () => {
     const usersAtEnd = await helper.usersInDb()
-    const newBlog = { title: 'Título04', author: 'author D', url: 'umha direiçom 04', user: usersAtEnd[0].id }
+    const newBlog = { title: 'Título04', author: 'author D', url: 'umha direiçom 04', user: usersAtEnd[0] }
 
     const token = await helper.getToken(api)
     await api
@@ -119,8 +119,8 @@ describe('addition of a new blog', () => {
 
   test('a blog without title or url adds return 400', async () => {
     const usersAtEnd = await helper.usersInDb()
-    const newBlog = { author: 'author E', url: 'umha direiçom 05', likes: 5, user: usersAtEnd[0].id }
-    const newBlog2 = { title: 'Título05', author: 'author E', likes: 5, user: usersAtEnd[0].id }
+    const newBlog = { author: 'author E', url: 'umha direiçom 05', likes: 5, user: usersAtEnd[0] }
+    const newBlog2 = { title: 'Título05', author: 'author E', likes: 5, user: usersAtEnd[0] }
 
     const token = await helper.getToken(api)
     await api
@@ -144,7 +144,7 @@ describe('addition of a new blog', () => {
 
   test('no add blog No token', async () => {
     const usersAtEnd = await helper.usersInDb()
-    const newBlog = { title: 'Título03', author: 'author C', url: 'umha direiçom 03', likes: 3, user: usersAtEnd[0].id }
+    const newBlog = { title: 'Título03', author: 'author C', url: 'umha direiçom 03', likes: 3, user: usersAtEnd[0] }
 
     const response = await api
       .post('/api/blogs')
@@ -202,25 +202,25 @@ describe('deletion of a blog', () => {
 describe('updation of a blog', () => {
   test('a valid blog can be updated', async () => {
     const blogsAtStart = await helper.blogsInDb()
-    let blog = blogsAtStart[0]
-    blog.likes = blog.likes * 10
+    const sendBlog = { ...blogsAtStart[0], likes: 100,
+      user: { id: blogsAtStart[0].user.id, name: blogsAtStart[0].user.name } }
 
     await api
-      .put(`/api/blogs/${blog.id}`)
-      .send(blog)
+      .put(`/api/blogs/${sendBlog.id}`)
+      .send(sendBlog)
       .expect(202)
       .expect('Content-Type', /application\/json/)
 
-    const response = await api.get(`/api/blogs/${blog.id}`)
+    const response = await api.get(`/api/blogs/${sendBlog.id}`)
     const updatedBlog = response.body
 
-    assert.strictEqual(blog.likes, updatedBlog.likes)
+    assert.strictEqual(updatedBlog.likes, 100)
   })
 
   test('a blog without likes updates likes equal to 0', async () => {
     const blogsAtStart = await helper.blogsInDb()
     const sendBlog = { id: blogsAtStart[0].id, title: blogsAtStart[0].title, author: blogsAtStart[0].author,
-      url: blogsAtStart[0].url, user: blogsAtStart[0].user }
+      url: blogsAtStart[0].url, user: { id: blogsAtStart[0].user.id, name: blogsAtStart[0].user.name } }
 
     await api
       .put(`/api/blogs/${sendBlog.id}`)
@@ -237,9 +237,9 @@ describe('updation of a blog', () => {
   test('a blog without title or url updates return 400', async () => {
     const blogsAtStart = await helper.blogsInDb()
     const sendBlog = { id: blogsAtStart[0].id, author: blogsAtStart[0].author, url: blogsAtStart[0].url,
-      likes: blogsAtStart[0].likes, user: blogsAtStart[0].user }
+      likes: blogsAtStart[0].likes, user: { id: blogsAtStart[0].user.id, name: blogsAtStart[0].user.name } }
     const sendBlog2 = { id: blogsAtStart[0].id, title: blogsAtStart[0].title, author: blogsAtStart[0].author,
-      likes: blogsAtStart[0].likes, user: blogsAtStart[0].user }
+      likes: blogsAtStart[0].likes, user: { id: blogsAtStart[0].user.id, name: blogsAtStart[0].user.name } }
 
     await api
       .put(`/api/blogs/${sendBlog.id}`)

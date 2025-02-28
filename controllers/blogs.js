@@ -4,7 +4,7 @@ const Blog = require('../models/blog')
 const User = require('../models/user')
 const logger = require('../utils/logger')
 
-bloglistRouter.get('/', async (request, response) => {
+bloglistRouter.get('/', async (request, response, next) => {
   try {
     Blog
       .find({})
@@ -17,7 +17,7 @@ bloglistRouter.get('/', async (request, response) => {
   }
 })
 
-bloglistRouter.post('/', async (request, response) => {
+bloglistRouter.post('/', async (request, response, next) => {
   if (!request.user) {
     return response.status(400).end('Unauthorized')
   }
@@ -30,7 +30,7 @@ bloglistRouter.post('/', async (request, response) => {
 
   const user = await User.findById(request.user)
   const newBlog = new Blog({
-    title: body.title, author: body.author, url: body.url, likes: body.likes, user: user._id
+    title: body.title, author: body.author, url: body.url, likes: body.likes, user: user
   })
 
   try {
@@ -44,7 +44,7 @@ bloglistRouter.post('/', async (request, response) => {
   }
 })
 
-bloglistRouter.put('/:id', async (request, response) => {
+bloglistRouter.put('/:id', async (request, response, next) => {
   const body = request.body
   const validationError = validateBlog(body)
 
@@ -57,6 +57,7 @@ bloglistRouter.put('/:id', async (request, response) => {
     author: body.author,
     url: body.url,
     likes: body.likes,
+    user: body.userid
   }
 
   try {
@@ -76,6 +77,10 @@ const validateBlog = (body) => {
     return { status: 400, error: 'No Title send' }
   } else if (!body.url) {
     return { status: 400, error: 'No URL send' }
+  } else if (!body.user) {
+    return { status: 400, error: 'No user send' }
+  }else if (!body.user.id) {
+    return { status: 400, error: 'No user.id send' }
   } else if (!body.likes) {
     body.likes = 0
   }
@@ -104,11 +109,13 @@ bloglistRouter.delete('/:id', async (request, response, next) => {
       response.status(400).end('No blog find')
     } else if (!request.user) {
       response.status(400).end('Unauthorized')
-    } else if (request.user === blog.user.toString()) {
-      await Blog.findByIdAndDelete(request.params.id)
-      response.status(204).end()
     } else {
-      response.status(400).end('The user is not the same one who created the blog')
+      if (request.user === blog.user.toString()) {
+        await Blog.findByIdAndDelete(request.params.id)
+        response.status(204).end()
+      } else {
+        response.status(400).end('The user is not the same one who created the blog')
+      }
     }
   } catch(exception) {
     next(exception)
