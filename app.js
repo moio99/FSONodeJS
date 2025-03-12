@@ -26,9 +26,14 @@ app.use('/api/blogs', middleware.userExtractor, bloglistRouter)
 app.use('/api/blogs', bloglistRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/login', loginRouter)
+
+if (process.env.NODE_ENV.substring(0, 4) === 'test') {
+  const testingRouter = require('./controllers/testing')
+  app.use('/api/testing', testingRouter)
+}
 app.use(middleware.unknownEndpoint)
 
-// este debe ser el último middleware cargado, ¡también todas las rutas deben ser registrada antes que esto!
+// este tem que ser o derradeiro middleware carregado, também todas as rotas tenhem que ser registrada antes disto!
 app.use(middleware.errorHandler)
 
 module.exports = app
