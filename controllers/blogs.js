@@ -1,17 +1,21 @@
 const jwt = require('jsonwebtoken')
 const bloglistRouter = require('express').Router()
 const Blog = require('../models/blog')
+const Comment = require('../models/comment')
 const User = require('../models/user')
 const logger = require('../utils/logger')
 
 bloglistRouter.get('/', async (request, response, next) => {
   try {
-    Blog
+    const blogs = await Blog
       .find({})
-      .populate('user', { username: 1, name: 1, id: 1 })
-      .then(blogs => {
-        response.json(blogs)
+      .populate('user', { username: 1, name: 1, id: 1 })    // populate: O que vai sacar da outra taboa
+      .populate({
+        path: 'comments',
+        select: 'title id'
       })
+
+    response.json(blogs)
   } catch(exception) {
     next(exception)
   }
@@ -111,6 +115,7 @@ bloglistRouter.delete('/:id', async (request, response, next) => {
       response.status(400).end('Unauthorized')
     } else {
       if (request.user === blog.user.toString()) {
+        await Comment.deleteMany({ _id: { $in: blog.comments } })
         await Blog.findByIdAndDelete(request.params.id)
         response.status(204).end()
       } else {
