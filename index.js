@@ -105,7 +105,6 @@ const resolvers = {
     },
     allBooks: async (root, args) => {
       let query = {}
-    
       if (args.genre) {
         query.genres = { $in: args.genre }
       }
@@ -138,14 +137,15 @@ const resolvers = {
   },
   Mutation: {
     addBook: async (root, args, context) => {
-      const currentUser = context.currentUser
+      console.log('addBook')
+      /* const currentUser = context.currentUser
       if (!currentUser) {
         throw new GraphQLError('not authenticated', {
           extensions: {
             code: 'BAD_USER_INPUT',
           }
         })
-      }
+      } */
 
       if (args.title.length < 4) {
         console.log(args.title)
@@ -223,14 +223,14 @@ const resolvers = {
       return author
     },
     editAuthor: async (root, args, context) => {
-      const currentUser = context.currentUser
+      /* const currentUser = context.currentUser
       if (!currentUser) {
         throw new GraphQLError('not authenticated', {
           extensions: {
             code: 'BAD_USER_INPUT',
           }
         })
-      }
+      } */
 
       const existingAuthor = await Author.findOne({ name: args.name })
       if (!existingAuthor) {
@@ -238,7 +238,7 @@ const resolvers = {
       }
       existingAuthor.born = args.setBornTo
       try {
-        await author.save()
+        await existingAuthor.save()
       } catch (error) {
         throw new GraphQLError('Editing author born year failed', {
           extensions: {
@@ -248,7 +248,7 @@ const resolvers = {
           }
         })
       }
-      return author
+      return existingAuthor
     },
     createUser: async (root, args) => {
       const user = new User({ ...args })
