@@ -51,6 +51,8 @@ const typeDefs = `
       published: Int!
       genres: [String!]!
     ): Book
+
+    deleteBook(title: String!): Boolean
     
     addAuthor(
       name: String!
@@ -81,6 +83,7 @@ const typeDefs = `
 
   type Token {
     value: String!
+    favoriteGenre: String!
   }
 `
 
@@ -138,14 +141,14 @@ const resolvers = {
   Mutation: {
     addBook: async (root, args, context) => {
       console.log('addBook')
-      /* const currentUser = context.currentUser
+      const currentUser = context.currentUser
       if (!currentUser) {
         throw new GraphQLError('not authenticated', {
           extensions: {
             code: 'BAD_USER_INPUT',
           }
         })
-      } */
+      }
 
       if (args.title.length < 4) {
         console.log(args.title)
@@ -188,6 +191,38 @@ const resolvers = {
         })
       }
     },
+    deleteBook: async (root, args, context) => {
+      const currentUser = context.currentUser
+      if (!currentUser) {
+        throw new GraphQLError('Not authenticated', {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+          }
+        })
+      }
+    
+      const book = await Book.findOne({ title: args.title })
+      if (!book) {
+        throw new GraphQLError('Book not found', {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+            invalidArgs: args.title
+          }
+        })
+      }
+    
+      try {
+        await Book.deleteOne({ title: args.title })
+        return true
+      } catch (error) {
+        throw new GraphQLError('Error deleting book', {
+          extensions: {
+            code: 'INTERNAL_SERVER_ERROR',
+            error
+          }
+        })
+      }
+    },    
     addAuthor: async (root, args) => {
       if (args.name.length < 4) {
         throw new GraphQLError(`The name ${args.name} is too short, minimum length is 4`, {
@@ -223,14 +258,14 @@ const resolvers = {
       return author
     },
     editAuthor: async (root, args, context) => {
-      /* const currentUser = context.currentUser
+      const currentUser = context.currentUser
       if (!currentUser) {
         throw new GraphQLError('not authenticated', {
           extensions: {
             code: 'BAD_USER_INPUT',
           }
         })
-      } */
+      }
 
       const existingAuthor = await Author.findOne({ name: args.name })
       if (!existingAuthor) {
@@ -298,7 +333,7 @@ const resolvers = {
       }
       context.currentUser = user
   
-      return { value: jwt.sign(userForToken, process.env.JWT_SECRET) }
+      return { value: jwt.sign(userForToken, process.env.JWT_SECRET), favoriteGenre: user.favoriteGenre }
     }
   }
 }
