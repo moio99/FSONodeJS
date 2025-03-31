@@ -29,7 +29,7 @@ const calculateExercises = (dailyExercises: number[], target: number) => {
     ratingDescription = 'bad you needs improvement';
   }
 
-  const result ={
+  return {
     periodLength,
     trainingDays,
     target,
@@ -38,11 +38,24 @@ const calculateExercises = (dailyExercises: number[], target: number) => {
     rating,
     ratingDescription
   };
-  console.log(result);
 };
 
-const args = process.argv.slice(2);
-const dailyExercises = JSON.parse(args[0]);
-const target = Number(args[1]);
-
-calculateExercises(dailyExercises, target);
+try {
+  if (process.argv.length < 4) throw new Error('Not enough arguments');
+  if (process.argv.length > 4) throw new Error('Too many arguments');
+  if (!isNaN(Number(process.argv[3]))) {
+    const args = process.argv.slice(2);
+    const dailyExercises = JSON.parse(args[0]);
+    const target = Number(args[1]);
+    const result = calculateExercises(dailyExercises, target);
+    console.log(result);
+  } else {
+    throw new Error('Provided target value was not number!');
+  }
+} catch (error: unknown) {
+  let errorMessage = 'Something bad happened.'
+  if (error instanceof Error) {
+    errorMessage += ' Error: ' + error.message;
+  }
+  console.log(errorMessage);
+}
