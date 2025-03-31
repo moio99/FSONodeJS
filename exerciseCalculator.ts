@@ -29,7 +29,7 @@ const calculateExercises = (dailyExercises: number[], target: number) => {
     ratingDescription = 'bad you needs improvement';
   }
 
-  return {
+  let result: ExerciseResult = {
     periodLength,
     trainingDays,
     target,
@@ -38,6 +38,7 @@ const calculateExercises = (dailyExercises: number[], target: number) => {
     rating,
     ratingDescription
   };
+  return result;
 };
 
 try {
