@@ -9,8 +9,8 @@ const calculateBmi = (estatura: number, masa: number) => {
   }
 }
 
-const args = process.argv.slice(2);
-const masa = parseFloat(args[0]);
-const estatura = parseFloat(args[1]);
+const commandLineArgs = process.argv.slice(2);
+const masa = parseFloat(commandLineArgs[0]);
+const estatura = parseFloat(commandLineArgs[1]);
 
 calculateBmi(masa, estatura);
