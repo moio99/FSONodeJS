@@ -7,7 +7,7 @@
     "calculateBmi": "ts-node bmiCalculator.ts 1.80 74 -- -s --someoption",
     "calculateExercises": "ts-node exerciseCalculator.ts \"[3, 0, 2, 4.5, 0, 3, 1]\" 2",
     "start": "ts-node index.ts",
-    "dev": "ts-node-dev index.ts",
+    "dev": "ts-node-dev src/index.ts",
     "lint": "eslint --ext .ts .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
