@@ -1,4 +1,5 @@
 const { ApolloServer } = require('@apollo/server')
+const { execute, subscribe } = require('graphql')
 const { ApolloServerPluginDrainHttpServer } = require('@apollo/server/plugin/drainHttpServer')
 const { expressMiddleware } = require('@apollo/server/express4')
 const { makeExecutableSchema } = require('@graphql-tools/schema')
@@ -40,7 +41,29 @@ const start = async () => {
     path: '/graphql',
   })
 
-  const serverCleanup = useServer({ schema }, wsServer)
+  // const serverCleanup = useServer({ schema }, wsServer)
+  const serverCleanup = useServer(
+    {
+      schema,
+      execute,
+      subscribe,
+      context: async (ctx) => {
+        console.log('tokennnnn connectionParams', ctx.connectionParams)
+        if (ctx.connectionParams?.authToken) {
+          console.log('tokennnnn', ctx.connectionParams?.authToken)
+          try {
+            const decodedToken = jwt.verify(ctx.connectionParams.authToken, process.env.JWT_SECRET)
+            const currentUser = await User.findById(decodedToken.id)
+            return { currentUser }
+          } catch (error) {
+            console.error('Erro de autenticaçom no WebSocket:', error.message)
+          }
+        }
+        return {}
+      },
+    },
+    wsServer
+  )
 
   const server = new ApolloServer({
     schema,
@@ -60,10 +83,10 @@ const start = async () => {
 
   await server.start()
 
+  app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
+  app.use(express.json())
   app.use(
-    ['/', '/graphql'],
-    cors(),
-    express.json(),
+    ['/','/graphql'],
     expressMiddleware(server, {
       context: async ({ req }) => {
         const auth = req ? req.headers.authorization : null
