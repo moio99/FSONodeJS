@@ -1,5 +1,6 @@
 import patientsData from '../data/patients.ts'
-import { Patient, NomSSNPatient } from '../types.ts';
+import { Patient, NomSSNPatient, NewPatientEntry } from '../types.ts';
+import { v1 as uuid } from 'uuid'
 
 const patients: Patient[] = patientsData.map((patient) => ({
   ...patient,
@@ -23,12 +24,24 @@ const getNomSSNPatient = (): NomSSNPatient[] => {
   }));
 };
 
-const addEntry = () => {
-  return null;
+const findById = (id: string): NomSSNPatient | undefined => {
+  const patient = getNomSSNPatient().find(p => p.id === id);
+  return patient;
+}
+
+const addEntry = ( entry: NewPatientEntry ): Patient => {
+  const newDiaryEntry = {
+    id: uuid(),
+    ...entry
+  };
+
+  patientsData.push(newDiaryEntry);
+  return newDiaryEntry;
 };
 
 export default {
   getEntries,
   getNomSSNPatient,
+  findById,
   addEntry
 };

@@ -188,6 +188,7 @@
     "unpipe": "^1.0.0",
     "uri-js": "^4.4.1",
     "utils-merge": "^1.0.1",
+    "uuid": "^11.1.0",
     "v8-compile-cache-lib": "^3.0.1",
     "vary": "^1.1.2",
     "which": "^2.0.2",
