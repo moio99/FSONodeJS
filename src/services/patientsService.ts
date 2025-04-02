@@ -1,31 +1,28 @@
 import patientsData from '../data/patients.ts'
-import { Patient, NomSSNPatient, NewPatientEntry } from '../types.ts';
+import { Patient, NomSSNPatient, NewPatientEntry, Gender } from '../types.ts';
 import { v1 as uuid } from 'uuid'
 
 const patients: Patient[] = patientsData.map((patient) => ({
   ...patient,
-  gender: patient.gender as "male" | "female",
+  gender: patient.gender as Gender,
 }));
 
 const getEntries = () => {
   return patients;
 };
 
-const getNomSSNPatient = (): NomSSNPatient[] => {
-  return patientsData.map(({ id,
-    name,
-    dateOfBirth,
-    gender,
-    occupation, }) => ({id,
-      name,
-      dateOfBirth,
-      gender: gender as "male" | "female",
-      occupation,
+const getPatientsWithoutSSN = (): NomSSNPatient[] => {
+  return patientsData.map((patient) => ({
+    id: patient.id,
+    name: patient.name,
+    dateOfBirth: patient.dateOfBirth,
+    gender: patient.gender as Gender,
+    occupation: patient.occupation,
   }));
 };
 
 const findById = (id: string): NomSSNPatient | undefined => {
-  const patient = getNomSSNPatient().find(p => p.id === id);
+  const patient = getPatientsWithoutSSN().find(p => p.id === id);
   return patient;
 }
 
@@ -41,7 +38,7 @@ const addEntry = ( entry: NewPatientEntry ): Patient => {
 
 export default {
   getEntries,
-  getNomSSNPatient,
+  getPatientsWithoutSSN,
   findById,
   addEntry
 };
