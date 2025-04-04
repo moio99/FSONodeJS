@@ -61,7 +61,8 @@ const toNewPatientEntry = (object: unknown): NewPatientEntry => {
       dateOfBirth: parseDate(object.dateOfBirth),
       name: parseName(object.name),
       ssn: parseSsn(object.ssn),
-      occupation: parseOccupation(object.occupation)
+      occupation: parseOccupation(object.occupation),
+      entries: []
     };
   
     return newEntry;
