@@ -23,10 +23,10 @@ const getPatientsWithoutSSN = (): NonSensitivePatient[] => {
   }));
 };
 
-const findById = (id: string): NonSensitivePatient | undefined => {
-  const patient = getPatientsWithoutSSN().find(p => p.id === id);
+const findById = (id: string): Patient | undefined => {
+  const patient = patientsData.find(p => p.id === id);
   console.log(patient);
-  return patient;
+  return patient ? { ...patient, gender: patient.gender as Gender, entries: [] } : undefined;
 }
 
 const addEntry = ( entry: NewPatientEntry ): Patient => {
