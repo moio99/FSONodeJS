@@ -4,7 +4,7 @@ import diagnosesService from '../services/diagnosesService';
 const router = express.Router();
 
 router.get('/', (_req, res) => {
-  res.send(diagnosesService.getEntries());
+  res.send(diagnosesService.getAll());
 })
 
 router.get('/:code', (req, res) => {

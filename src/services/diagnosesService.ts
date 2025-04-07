@@ -2,8 +2,8 @@ import diagnosesData from '../data/diagnoses.ts'
 import { Diagnosis } from '../types';
 
 const diagnosis: Diagnosis[] = diagnosesData;
-const getEntries = () => {
-  return diagnosis;
+const getAll = () => {
+  return diagnosis.map(d => d.code);
 };
 
 const getDiagnosis = (code: string): Diagnosis | undefined => {
@@ -11,12 +11,13 @@ const getDiagnosis = (code: string): Diagnosis | undefined => {
   return element;
 };
 
-const addEntry = () => {
+const addDiagnosis = (diagnosis: Diagnosis) => {
+  diagnosesData.push(diagnosis);
   return null;
 };
 
 export default {
-  getEntries,
+  getAll,
   getDiagnosis,
-  addEntry
+  addDiagnosis
 };

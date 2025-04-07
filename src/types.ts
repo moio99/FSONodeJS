@@ -32,7 +32,7 @@ export interface HealthCheckEntry extends BaseEntry {
   healthCheckRating: HealthCheckRating;
 }
 
-type Discharge = {
+export type Discharge = {
   date: string;
   criteria: string;
 };
@@ -43,7 +43,7 @@ export interface HospitalEntry extends BaseEntry {
   discharge: Discharge
 }
 
-type SickLeave = {
+export type SickLeave = {
   startDate: string;
   endDate: string;
 };
@@ -60,6 +60,8 @@ export type Entry =
   | OccupationalHealthCareEntry
   | HealthCheckEntry;
 
+export type NewEntry = Omit<Entry, "id">;
+
 export type Patient = {
   id: string;
   name: string;
@@ -72,4 +74,4 @@ export type Patient = {
 
 export type NonSensitivePatient = Omit<Patient, 'ssn' | 'entries'>;
 
-export type NewPatientEntry = Omit<Patient, 'id'>;
+export type NewPatient = Omit<Patient, 'id'>;

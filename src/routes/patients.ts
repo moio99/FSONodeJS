@@ -1,6 +1,7 @@
 import express from 'express';
 import patientsService from '../services/patientsService';
-import toNewPatientEntry from '../utils';
+import toNewPatient from '../utilsPatient';
+import toNewEntry from '../utilsEntry';
 
 const router = express.Router();
 
@@ -20,8 +21,23 @@ router.get('/:id', (req, res) => {
 
 router.post('/', (req, res) => {
   try {
-    const newPatientEntry = toNewPatientEntry(req.body);
-    const addedEntry = patientsService.addEntry(newPatientEntry);
+    const newPatient = toNewPatient(req.body);
+    const addedEntry = patientsService.addPatient(newPatient);
+    res.json(addedEntry);
+  } catch (error: unknown) {
+    let errorMessage = 'Something went wrong.';
+    if (error instanceof Error) {
+      errorMessage += ' Error: ' + error.message;
+    }
+    res.status(400).send(errorMessage);
+  }
+})
+
+router.post('/:id/entries', (req, res) => {
+  try {
+    if (!req.params.id) throw new Error('Missing id');
+    const newEntry = toNewEntry(req.body);
+    const addedEntry = patientsService.addEntry(req.params.id, newEntry);
     res.json(addedEntry);
   } catch (error: unknown) {
     let errorMessage = 'Something went wrong.';
